@@ -1,5 +1,5 @@
 [package]
-name = "dioxus-example"
+name = "dxnats"
 version = "0.1.0"
 authors = ["Iain Calder <iain.calder@fasthosts.com>"]
 edition = "2021"

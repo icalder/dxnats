@@ -1,0 +1,141 @@
+:root {
+    --primary-color: #66b3ff; /* Lighter blue for dark theme */
+    --primary-hover-color: #4da6ff; /* Slightly darker hover */
+    --light-bg-color: #1a1a1a; /* Dark background for body */
+    --text-color: #e0e0e0; /* Light text color */
+    --border-color: #444; /* Darker border color */
+    --highlight-bg-color: #2a2a2a; /* Dark background for highlighted area */
+    --highlight-border-color: #555; /* Darker border for highlighted area */
+    --card-bg-color: #333; /* Dark background for cards/messages */
+    --shadow-color: rgba(0, 0, 0, 0.3); /* Darker shadow */
+    --font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
+}
+
+body {
+    font-family: var(--font-family);
+    background-color: var(--light-bg-color);
+    color: var(--text-color);
+    margin: 0;
+    padding: 20px;
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+    min-height: 100vh;
+    box-sizing: border-box;
+}
+
+.container {
+    background-color: var(--card-bg-color);
+    padding: 30px;
+    border-radius: 12px;
+    box-shadow: 0 4px 12px var(--shadow-color);
+    width: 95%; /* Slightly less width to avoid touching edges on small screens */
+    max-width: 700px;
+}
+
+header h1 {
+    text-align: center;
+    color: var(--primary-color);
+    margin-bottom: 30px;
+    font-size: 2em;
+}
+
+.form-section, .messages-section {
+    margin-bottom: 30px;
+}
+
+.form-section h2, .messages-section h3 {
+    margin-top: 0;
+    margin-bottom: 15px;
+    color: var(--primary-color); /* Use primary color for section titles */
+    border-bottom: 1px solid var(--border-color);
+    padding-bottom: 10px;
+}
+
+#messageSelectorForm .form-group {
+    margin-bottom: 20px;
+}
+
+#messageSelectorForm label {
+    display: block;
+    margin-bottom: 8px;
+    font-weight: 600;
+}
+
+#messageSelectorForm input[type="text"] {
+    width: 100%;
+    padding: 12px;
+    border: 1px solid var(--border-color);
+    border-radius: 6px;
+    box-sizing: border-box;
+    background-color: var(--card-bg-color); /* Dark background for input */
+    color: var(--text-color); /* Light text color for input */
+    font-size: 1em;
+}
+
+#messageSelectorForm input[type="text"]:focus {
+    border-color: var(--primary-color);
+    outline: none;
+    box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+} /* Keep the focus shadow light */
+
+#messageSelectorForm button[type="submit"] {
+    background-color: var(--primary-color);
+    color: white;
+    padding: 12px 20px;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 1em;
+    font-weight: 600;
+    transition: background-color 0.2s ease-in-out;
+}
+
+#messageSelectorForm button[type="submit"]:hover {
+    background-color: var(--primary-hover-color);
+}
+
+#currentSubjectDisplay {
+    font-weight: bold;
+    color: var(--primary-color);
+}
+
+.highlighted-area {
+    background-color: var(--highlight-bg-color); /* Darker background */
+    border: 1px solid var(--highlight-border-color);
+    padding: 20px;
+    border-radius: 8px;
+    min-height: 200px;
+    max-height: 400px; /* Limit height and allow scrolling */
+    overflow-y: auto;
+    box-shadow: inset 0 1px 3px rgba(0,0,0,0.05);
+}
+
+.placeholder-message {
+    color: #999; /* Lighter grey for dark theme */
+    text-align: center;
+    padding: 20px 0;
+    font-style: italic;
+}
+
+.message-item {
+    background-color: var(--card-bg-color);
+    padding: 12px 18px; /* Slightly more padding */
+    border: 1px solid var(--border-color);
+    border-radius: 6px;
+    margin-bottom: 10px;
+    font-size: 0.95em;
+    word-wrap: break-word;
+}
+.message-item:last-child {
+    margin-bottom: 0;
+}
+
+footer {
+    text-align: center;
+    margin-top: 40px;
+    padding-top: 20px;
+    border-top: 1px solid var(--border-color);
+    font-size: 0.85em; /* Slightly smaller footer text */
+    color: #6c757d;
+}

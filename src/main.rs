@@ -1,9 +1,8 @@
-use dioxus::{
-    logger::tracing::warn,
-    prelude::{
-        server_fn::codec::{StreamingText, TextStream},
-        *,
-    },
+#[cfg(feature = "server")]
+use dioxus::logger::tracing::warn;
+use dioxus::prelude::{
+    server_fn::codec::{StreamingText, TextStream},
+    *,
 };
 
 use futures::StreamExt as _;
@@ -104,11 +103,6 @@ pub fn MessageViewer() -> Element {
             }
         }
     }
-}
-
-#[component]
-pub fn SelectorForm() -> Element {
-    rsx! {}
 }
 
 #[component]

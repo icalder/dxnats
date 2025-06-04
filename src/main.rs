@@ -72,7 +72,7 @@ pub fn MessageViewer() -> Element {
                 ReceivedMessages { subject, msgs: msgs() }
             }
             footer {
-                p { "© Various Robots 2025" }
+                p { "CSS by Gemini - thanks!" }
             }
         }
     }

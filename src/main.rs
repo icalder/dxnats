@@ -57,12 +57,17 @@ fn App() -> Element {
 }
 
 fn process_message(msg: String) -> String {
-    // Process the message as needed, e.g., parse JSON, format, etc.
-    // For now, just return the message as is
-    if msg == "domath" {
-        let mut a = ndarray::Array::eye(3);
-        a *= 42;
-        return format!("Matrix: \n{}", a);
+    if msg.starts_with("matrix") {
+        let res = msg
+            .chars()
+            .skip_while(|c| !c.is_digit(10))
+            .collect::<String>();
+        if !res.is_empty() {
+            let n = res.parse::<i32>().unwrap();
+            let mut a = ndarray::Array::eye(3);
+            a *= n;
+            return format!("Matrix: \n{}", a);
+        }
     }
     msg
 }
@@ -144,7 +149,9 @@ pub fn ReceivedMessages(subject: String, msgs: VecDeque<String>) -> Element {
             }
             div { class: "highlighted-area", id: "messageDisplayArea",
                 if subject.is_empty() {
-                    p { class: "placeholder-message", "No messages received yet. Please enter a subject and click \"Watch Subject\"." }
+                    p { class: "placeholder-message",
+                        "No messages received yet. Please enter a subject and click \"Watch Subject\"."
+                    }
                 } else {
                     for msg in msgs {
                         p { class: "message-item", {msg} }

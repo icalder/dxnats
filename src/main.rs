@@ -47,6 +47,7 @@ fn main() {
 }
 
 #[component]
+#[allow(non_snake_case)]
 fn App() -> Element {
     rsx! {
         document::Link { rel: "icon", href: FAVICON }
@@ -56,29 +57,32 @@ fn App() -> Element {
     }
 }
 
-fn process_message(msg: String) -> String {
-    if msg.starts_with("matrix") {
-        let res = msg
-            .chars()
-            .skip_while(|c| !c.is_digit(10))
-            .collect::<String>();
-        if !res.is_empty() {
-            let n = res.parse::<i32>().unwrap();
-            let mut a = ndarray::Array::eye(3);
-            a *= n;
-            return format!("Matrix: \n{}", a);
+#[component]
+pub fn MessageViewer() -> Element {
+    let subject = use_signal(|| String::from(""));
+    let msgs: Signal<VecDeque<String>> = use_signal(|| VecDeque::new());
+
+    rsx! {
+        div { class: "container",
+            header {
+                h1 { "Live Message Display" }
+            }
+            main {
+                SelectorForm { subject, msgs }
+                ReceivedMessages { subject, msgs: msgs() }
+            }
+            footer {
+                p { "© Various Robots 2025" }
+            }
         }
     }
-    msg
 }
 
 #[component]
-pub fn MessageViewer() -> Element {
-    let mut msgs: Signal<VecDeque<String>> = use_signal(|| VecDeque::new());
-    let mut subject = use_signal(|| String::from(""));
+pub fn SelectorForm(subject: Signal<String>, msgs: Signal<VecDeque<String>>) -> Element {
     let mut task_handle: Option<Task> = None;
 
-    let submit_handler = move |evt: Event<FormData>| {
+    let selector_changed_handler = move |evt: Event<FormData>| {
         // A new subject is submitted: update the state and start a new async task to receive messages
         let new_subject = evt.values()["subject"].as_value();
         subject.set(new_subject.to_string());
@@ -95,7 +99,7 @@ pub fn MessageViewer() -> Element {
         }
         // Spawn a new async task to receive messages on the new subject
         task_handle = Some(spawn(async move {
-            if let Ok(stream) = msg_stream(new_subject).await {
+            if let Ok(stream) = server_msg_stream(new_subject).await {
                 let mut stream = stream.into_inner();
                 while let Some(Ok(s)) = stream.next().await {
                     let mut msgs = msgs.write();
@@ -109,30 +113,19 @@ pub fn MessageViewer() -> Element {
     };
 
     rsx! {
-        div { class: "container",
-            header {
-                h1 { "Live Message Display" }
-            }
-            main {
-                section { class: "form-section",
-                    h2 { "Message Selector" }
-                    form { id: "messageSelectorForm", onsubmit: submit_handler,
-                        div { class: "form-group",
-                            label { r#for: "subject", "Subject:" }
-                            input {
-                                id: "subjectInput",
-                                name: "subject",
-                                placeholder: "e.g., alerts.critical, sensor.temp.*",
-                                r#type: "text",
-                            }
-                        }
-                        button { r#type: "submit", "Watch Subject" }
+        section { class: "form-section",
+            h2 { "Message Selector" }
+            form { id: "messageSelectorForm", onsubmit: selector_changed_handler,
+                div { class: "form-group",
+                    label { r#for: "subject", "Subject:" }
+                    input {
+                        id: "subjectInput",
+                        name: "subject",
+                        placeholder: "e.g., alerts.critical, sensor.temp.*",
+                        r#type: "text",
                     }
                 }
-                ReceivedMessages { subject, msgs: msgs() }
-            }
-            footer {
-                p { "© Various Robots 2025" }
+                button { r#type: "submit", "Watch Subject" }
             }
         }
     }
@@ -162,8 +155,24 @@ pub fn ReceivedMessages(subject: String, msgs: VecDeque<String>) -> Element {
     }
 }
 
+fn process_message(msg: String) -> String {
+    if msg.starts_with("matrix") {
+        let res = msg
+            .chars()
+            .skip_while(|c| !c.is_digit(10))
+            .collect::<String>();
+        if !res.is_empty() {
+            let n = res.parse::<i32>().unwrap();
+            let mut a = ndarray::Array::eye(3);
+            a *= n;
+            return format!("Matrix: \n{}", a);
+        }
+    }
+    msg
+}
+
 #[server(output = StreamingText)]
-async fn msg_stream(subject: String) -> Result<TextStream, ServerFnError> {
+async fn server_msg_stream(subject: String) -> Result<TextStream, ServerFnError> {
     let jetstream = nats_utilities::get_jetstream().await;
     let kv = jetstream
         .create_key_value(async_nats::jetstream::kv::Config {

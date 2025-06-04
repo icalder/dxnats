@@ -54,25 +54,25 @@ fn App() -> Element {
 pub fn MessageViewer() -> Element {
     let mut msg =
         use_signal(|| String::from("Enter a subject and click \"Watch Subject\" to see messages."));
-    let mut task_handle: Signal<Option<Task>> = use_signal(|| None);
+    let mut task_handle: Option<Task> = None;
 
     let submit_handler = move |evt: Event<FormData>| {
         let subject = evt.values()["subject"].as_value();
         if subject.is_empty() {
             return;
         }
-        if let Some(existing_task) = *task_handle.read() {
+        if let Some(existing_task) = task_handle {
             existing_task.cancel();
+            dioxus_logger::tracing::info!("Cancelled previous task for subject: {}", subject);
         }
-        let task = spawn(async move {
+        task_handle =  Some(spawn(async move {
             if let Ok(stream) = msg_stream(subject).await {
                 let mut stream = stream.into_inner();
                 while let Some(Ok(s)) = stream.next().await {
                     msg.set(s);
                 }
             }
-        });
-        task_handle.set(Some(task));
+        }));
     };
 
     rsx! {

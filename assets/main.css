@@ -120,13 +120,27 @@ header h1 {
 
 .message-item {
     background-color: var(--card-bg-color);
-    padding: 12px 18px; /* Slightly more padding */
+    /* padding: 12px 18px; /* Slightly more padding */ /* Original padding */
+    padding: 12px 18px 12px 45px; /* Increased left padding for icon */
     border: 1px solid var(--border-color);
     border-radius: 6px;
     margin-bottom: 10px;
     font-size: 0.95em;
     word-wrap: break-word;
+    position: relative; /* Added for ::before positioning */
 }
+
+/* New style for the icon */
+.message-item::before {
+    content: '📝'; /* Memo icon */
+    position: absolute;
+    left: 18px; /* Aligns with original padding-left */
+    top: 12px;  /* Aligns with original padding-top */
+    color: var(--primary-color);
+    font-size: 1.1em; /* Slightly larger than message text, relative to .message-item font-size */
+    line-height: 1; /* Helps ensure consistent vertical alignment for the emoji */
+}
+
 .message-item:last-child {
     margin-bottom: 0;
 }

@@ -1,3 +1,5 @@
+use std::cell::RefCell;
+
 #[cfg(feature = "server")]
 use dioxus::logger::tracing::warn;
 use dioxus::prelude::{
@@ -56,21 +58,23 @@ fn App() -> Element {
 
 #[component]
 pub fn MessageViewer() -> Element {
-    let mut msg =
+    let mut msg: Signal<String> =
         use_signal(|| String::from("Enter a subject and click \"Watch Subject\" to see messages."));
+    let mut subject = use_signal(|| String::from(""));
     let mut task_handle: Option<Task> = None;
 
     let submit_handler = move |evt: Event<FormData>| {
-        let subject = evt.values()["subject"].as_value();
-        if subject.is_empty() {
-            return;
-        }
+        let new_subject = evt.values()["subject"].as_value();
+        subject.set(new_subject.to_string());
         if let Some(existing_task) = task_handle {
             existing_task.cancel();
-            dioxus_logger::tracing::info!("Cancelled previous task for subject: {}", subject);
+            dioxus_logger::tracing::info!("Cancelled previous task for subject: {}", new_subject);
+        }
+        if new_subject.is_empty() {
+            return;
         }
         task_handle = Some(spawn(async move {
-            if let Ok(stream) = msg_stream(subject).await {
+            if let Ok(stream) = msg_stream(new_subject).await {
                 let mut stream = stream.into_inner();
                 while let Some(Ok(s)) = stream.next().await {
                     msg.set(s);
@@ -100,7 +104,7 @@ pub fn MessageViewer() -> Element {
                         button { r#type: "submit", "Watch Subject" }
                     }
                 }
-                ReceivedMessages { msg }
+                ReceivedMessages { subject, msg }
             }
             footer {
                 p { "© Various Robots 2025" }
@@ -110,12 +114,12 @@ pub fn MessageViewer() -> Element {
 }
 
 #[component]
-pub fn ReceivedMessages(msg: String) -> Element {
+pub fn ReceivedMessages(subject: String, msg: String) -> Element {
     rsx! {
         section { class: "messages-section",
             h3 {
                 "Received Messages (Subject: "
-                span { id: "currentSubjectDisplay", "None" }
+                span { id: "currentSubjectDisplay", {subject} }
                 ")"
             }
             div { class: "highlighted-area", id: "messageDisplayArea",

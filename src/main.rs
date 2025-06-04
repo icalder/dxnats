@@ -19,7 +19,11 @@ mod nats_utilities {
     static JETSTREAM: OnceCell<async_nats::jetstream::Context> = OnceCell::const_new();
 
     async fn jetstream() -> async_nats::jetstream::Context {
-        let nats_client = async_nats::connect("nats://localhost:4222").await.unwrap();
+        let nats_client = async_nats::connect(
+            std::env::var("NATS_URL").unwrap_or("nats://localhost:4222".into()),
+        )
+        .await
+        .unwrap();
         async_nats::jetstream::new(nats_client)
     }
 
@@ -65,7 +69,7 @@ pub fn MessageViewer() -> Element {
             existing_task.cancel();
             dioxus_logger::tracing::info!("Cancelled previous task for subject: {}", subject);
         }
-        task_handle =  Some(spawn(async move {
+        task_handle = Some(spawn(async move {
             if let Ok(stream) = msg_stream(subject).await {
                 let mut stream = stream.into_inner();
                 while let Some(Ok(s)) = stream.next().await {

@@ -20,7 +20,7 @@ ENV PATH="/.cargo/bin:$PATH"
 RUN dx bundle --platform web
 
 #FROM chef AS runtime
-FROM debian:bullseye-slim
+FROM debian:bookworm-slim
 #RUN apt-get update && apt-get install -y extra-runtime-dependencies && rm -rf /var/lib/apt/lists/*
 COPY --from=builder /app/target/dx/dxnats/release/web/ /usr/local/app
 

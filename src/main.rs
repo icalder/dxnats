@@ -1,4 +1,4 @@
-use std::cell::RefCell;
+use std::{cell::RefCell, collections::VecDeque};
 
 #[cfg(feature = "server")]
 use dioxus::logger::tracing::warn;
@@ -58,14 +58,14 @@ fn App() -> Element {
 
 #[component]
 pub fn MessageViewer() -> Element {
-    let mut msg: Signal<String> =
-        use_signal(|| String::from("Enter a subject and click \"Watch Subject\" to see messages."));
+    let mut msgs: Signal<VecDeque<String>> = use_signal(|| VecDeque::new());
     let mut subject = use_signal(|| String::from(""));
     let mut task_handle: Option<Task> = None;
 
     let submit_handler = move |evt: Event<FormData>| {
         let new_subject = evt.values()["subject"].as_value();
         subject.set(new_subject.to_string());
+        msgs.set(VecDeque::new()); // Clear previous messages
         if let Some(existing_task) = task_handle {
             existing_task.cancel();
             dioxus_logger::tracing::info!("Cancelled previous task for subject: {}", new_subject);
@@ -77,7 +77,11 @@ pub fn MessageViewer() -> Element {
             if let Ok(stream) = msg_stream(new_subject).await {
                 let mut stream = stream.into_inner();
                 while let Some(Ok(s)) = stream.next().await {
-                    msg.set(s);
+                    let mut msgs = msgs.write();
+                    if msgs.len() >= 3 {
+                        msgs.pop_back(); // Keep only the last 10 messages
+                    }
+                    msgs.push_front(s);
                 }
             }
         }));
@@ -104,7 +108,7 @@ pub fn MessageViewer() -> Element {
                         button { r#type: "submit", "Watch Subject" }
                     }
                 }
-                ReceivedMessages { subject, msg }
+                ReceivedMessages { subject, msgs: msgs() }
             }
             footer {
                 p { "© Various Robots 2025" }
@@ -114,16 +118,22 @@ pub fn MessageViewer() -> Element {
 }
 
 #[component]
-pub fn ReceivedMessages(subject: String, msg: String) -> Element {
+pub fn ReceivedMessages(subject: String, msgs: VecDeque<String>) -> Element {
     rsx! {
         section { class: "messages-section",
             h3 {
                 "Received Messages (Subject: "
-                span { id: "currentSubjectDisplay", {subject} }
+                span { id: "currentSubjectDisplay", {subject.clone()} }
                 ")"
             }
             div { class: "highlighted-area", id: "messageDisplayArea",
-                p { class: "placeholder-message", {msg} }
+                if subject.is_empty() {
+                    p { class: "placeholder-message", "No messages received yet. Please enter a subject and click \"Watch Subject\"." }
+                } else {
+                    for msg in msgs {
+                        p { class: "message-item", {msg} }
+                    }
+                }
             }
         }
     }

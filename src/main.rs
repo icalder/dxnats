@@ -1,4 +1,4 @@
-use std::{cell::RefCell, collections::VecDeque};
+use std::collections::VecDeque;
 
 #[cfg(feature = "server")]
 use dioxus::logger::tracing::warn;
@@ -56,6 +56,17 @@ fn App() -> Element {
     }
 }
 
+fn process_message(msg: String) -> String {
+    // Process the message as needed, e.g., parse JSON, format, etc.
+    // For now, just return the message as is
+    if msg == "domath" {
+        let mut a = ndarray::Array::eye(3);
+        a *= 42;
+        return format!("Matrix: \n{}", a);
+    }
+    msg
+}
+
 #[component]
 pub fn MessageViewer() -> Element {
     let mut msgs: Signal<VecDeque<String>> = use_signal(|| VecDeque::new());
@@ -86,7 +97,7 @@ pub fn MessageViewer() -> Element {
                     if msgs.len() >= 3 {
                         msgs.pop_back(); // Keep only the last 10 messages
                     }
-                    msgs.push_front(s);
+                    msgs.push_front(process_message(s));
                 }
             }
         }));

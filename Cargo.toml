@@ -12,6 +12,7 @@ dioxus = { version = "0.6.0", features = ["fullstack"] }
 dioxus-logger = "0.6.2"
 dioxus-sdk = "0.6.0"
 futures = "0.3.31"
+ndarray = "0.16.1"
 tokio = { version = "1.45.1", features = ["full"], optional = true }
 
 [features]

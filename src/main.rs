@@ -63,16 +63,21 @@ pub fn MessageViewer() -> Element {
     let mut task_handle: Option<Task> = None;
 
     let submit_handler = move |evt: Event<FormData>| {
+        // A new subject is submitted: update the state and start a new async task to receive messages
         let new_subject = evt.values()["subject"].as_value();
         subject.set(new_subject.to_string());
         msgs.set(VecDeque::new()); // Clear previous messages
+
+        // Cancel the previous async task if it exists
         if let Some(existing_task) = task_handle {
             existing_task.cancel();
             dioxus_logger::tracing::info!("Cancelled previous task for subject: {}", new_subject);
         }
+        // No point in subscribing to an empty subject
         if new_subject.is_empty() {
             return;
         }
+        // Spawn a new async task to receive messages on the new subject
         task_handle = Some(spawn(async move {
             if let Ok(stream) = msg_stream(new_subject).await {
                 let mut stream = stream.into_inner();
@@ -148,9 +153,12 @@ async fn msg_stream(subject: String) -> Result<TextStream, ServerFnError> {
             ..Default::default()
         })
         .await?;
+
     println!("watching subject: {}", &subject);
-    let mut watch = kv.watch(subject).await?;
+
     let (tx, rx) = futures::channel::mpsc::unbounded();
+    let mut watch = kv.watch(subject).await?;
+
     tokio::spawn(async move {
         while let Some(msg) = watch.next().await {
             match msg {
